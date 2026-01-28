@@ -3,7 +3,7 @@ import requests
 
 
 class MCPClient:
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://mcp_server:8000"):
         self.base_url = base_url
 
     def search_policy(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
@@ -40,4 +40,4 @@ class MCPClient:
             timeout=5,
         )
         resp.raise_for_status()
-        return resp.json()
+        return resp.json()  
