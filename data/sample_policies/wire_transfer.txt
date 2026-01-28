@@ -1,0 +1,7 @@
+Policy: Wire Transfer Policy v1.1
+Section 1.2 - KYC
+
+KYC is needed for new customers.
+Any transfer above $9999 should be flagged in the system for enhanced KYC.
+
+

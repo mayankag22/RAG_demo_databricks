@@ -1,0 +1,59 @@
+/.venv
+
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.db
+
+# Virtual environments
+/.venv
+env/
+venv/
+
+# -------------------------
+# Streamlit
+# -------------------------
+.streamlit/
+
+# -------------------------
+# FAISS index
+# -------------------------
+data/faiss_index/
+*.faiss
+*.npy
+
+# -------------------------
+# Environment & Secrets
+# -------------------------
+.env
+.env.local
+*.env
+
+# -------------------------
+# Logs
+# -------------------------
+logs/
+*.log
+
+# -------------------------
+# VS Code
+# -------------------------
+.vscode/
+*.code-workspace
+
+# -------------------------
+# OS-specific
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# Databricks connector caches
+# -------------------------
+.databricks/
+.databricks-connect/

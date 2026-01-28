@@ -1,0 +1,6 @@
+Policy: Approval Matrix v2.1
+Section 1.1 - Credit Card Limit
+
+Tellers may approve Credit card limit up to $2,000.
+Branch managers may approve Credit card limit up to $10,000.
+Regional directors may approve Credit card limit above $10,000.
