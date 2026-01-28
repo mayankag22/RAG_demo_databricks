@@ -21,6 +21,7 @@ It is designed to run entirely on a personal laptop, with optional low‑cost LL
 
 ## Architecture
 
+```mermaid
 flowchart LR
 
     %% UI
