@@ -5,66 +5,101 @@ The system runs as two coordinated Docker containers — one for the MCP server 
 ### 🔧 High‑Level Architecture Diagram
 
 ```mermaid
-flowchart LR
-
-    %% Docker Layer
-    subgraph DOCKER[Docker Compose Environment]
-        direction LR
-
-        %% MCP Container
-        subgraph MCP_CONTAINER[MCP Server Container]
-            M1[/search_policy/]
-            M2[/get_section/]
-            M3[/check_compliance/]
+graph TB
+    %% Styling
+    classDef ingestStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000
+    classDef processStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef ragStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    classDef dockerStyle fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+    classDef monitorStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+    
+    %% Data Sources
+    subgraph SOURCES["📥 Data Sources"]
+        direction TB
+        TXT["📄 Text Files"]
+        PDF["📑 PDF Documents"]
+        DB["🟦 Databricks Table"]
+    end
+    
+    %% Document Processing Pipeline
+    subgraph PROCESS["⚙️ Document Processing Pipeline"]
+        direction TB
+        CHUNK["🔪 Text Chunker<br/><i>Semantic Segmentation</i>"]
+        EMBED["🧠 Embedding Model<br/><i>text-embedding-3-small</i>"]
+        
+        subgraph INDEXES["Index Storage"]
+            direction LR
+            FAISS["📊 FAISS Index<br/><i>Vector Search</i>"]
+            BM25["📈 BM25 Index<br/><i>Keyword Search</i>"]
         end
-
-        %% Streamlit Container
-        subgraph UI_CONTAINER[Streamlit UI Container]
-            UI[Streamlit UI<br/>User Questions]
+    end
+    
+    %% Docker Environment
+    subgraph DOCKER["🐳 Docker Compose Environment"]
+        direction TB
+        
+        subgraph MCP["MCP Server Container"]
+            direction TB
+            MCP_TOOLS["🔧 MCP Tools"]
+            TOOL1["search_policy"]
+            TOOL2["get_section"]
+            TOOL3["check_compliance"]
+            
+            MCP_TOOLS --- TOOL1
+            MCP_TOOLS --- TOOL2
+            MCP_TOOLS --- TOOL3
+        end
+        
+        subgraph STREAMLIT["Streamlit UI Container"]
+            direction TB
+            UI["💬 Streamlit Interface<br/><i>User Interaction</i>"]
         end
     end
-
-    %% Ingestion Layer
-    subgraph INGEST[Ingestion Layer]
-        I1[📄 Text Files]
-        I2[📑 PDF Uploads]
-        I3[🟦 Databricks Table]
-    end
-
-    %% Document Processing
-    subgraph PROCESSING[Document Processing]
-        C1[Chunker]
-        C2[Embeddings<br/>text-embedding-3-small]
-        C3[FAISS Index]
-        C4[BM25 Index]
-    end
-
+    
     %% RAG Pipeline
-    subgraph RAG[RAG Pipeline]
-        R1[Hybrid Retriever<br/>FAISS + BM25]
-        R2[Cross-Encoder Reranker]
-        R3[LLM Answer Generator<br/>GPT-4o-mini]
+    subgraph RAG["🤖 RAG Pipeline"]
+        direction TB
+        RETRIEVER["🔍 Hybrid Retriever<br/><i>FAISS + BM25 Fusion</i>"]
+        RERANK["⚡ Cross-Encoder Reranker<br/><i>Relevance Scoring</i>"]
+        LLM["🎯 LLM Generator<br/><i>GPT-4o-mini</i>"]
     end
-
-    %% Monitoring
-    subgraph MONITORING[Monitoring & Evaluation]
-        L1[Latency Tracking]
-        L2[Retrieval Metrics<br/>Precision@k, MRR]
-        L3[Audit Logs]
+    
+    %% Monitoring & Observability
+    subgraph MONITOR["📊 Monitoring & Evaluation"]
+        direction LR
+        LATENCY["⏱️ Latency Tracking"]
+        METRICS["📈 Retrieval Metrics<br/><i>Precision@k, MRR</i>"]
+        AUDIT["📝 Audit Logs"]
     end
-
-    %% Connections
-    UI --> R1
-    R1 --> R2 --> R3 --> UI
-
-    UI -->|Tool Calls| MCP_CONTAINER
-    MCP_CONTAINER -->|Policy Sections| UI
-
-    I1 --> PROCESSING
-    I2 --> PROCESSING
-    I3 --> PROCESSING
-
-    PROCESSING --> R1
-
-    UI --> MONITORING
-    MCP_CONTAINER --> MONITORING
+    
+    %% Data Flow Connections
+    TXT -->|Ingest| CHUNK
+    PDF -->|Ingest| CHUNK
+    DB -->|Ingest| CHUNK
+    
+    CHUNK -->|Split Text| EMBED
+    EMBED -->|Generate Vectors| FAISS
+    EMBED -->|Generate Tokens| BM25
+    
+    UI -->|User Query| RETRIEVER
+    
+    FAISS -->|Vector Results| RETRIEVER
+    BM25 -->|Keyword Results| RETRIEVER
+    
+    RETRIEVER -->|Top-k Candidates| RERANK
+    RERANK -->|Ranked Documents| LLM
+    LLM -->|Generated Answer| UI
+    
+    UI <-->|Tool Invocation| MCP_TOOLS
+    MCP_TOOLS -->|Policy Sections| UI
+    
+    UI -.->|Log Events| MONITOR
+    MCP -.->|Log Events| MONITOR
+    RAG -.->|Performance Metrics| MONITOR
+    
+    %% Apply Styles
+    class TXT,PDF,DB ingestStyle
+    class CHUNK,EMBED,FAISS,BM25 processStyle
+    class RETRIEVER,RERANK,LLM ragStyle
+    class MCP,STREAMLIT,MCP_TOOLS,TOOL1,TOOL2,TOOL3,UI dockerStyle
+    class LATENCY,METRICS,AUDIT monitorStyle
