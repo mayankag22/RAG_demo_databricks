@@ -1,45 +1,38 @@
-# Banking Policy Q&A
+## 🧱 Architecture
 
-🏦 Overview
-This project is an intelligent Banking Policy Q&A system that uses:
+The system runs as two coordinated Docker containers — one for the MCP server and one for the Streamlit UI — both sharing the same ingestion, retrieval, and RAG pipeline.
 
-RAG (Retrieval‑Augmented Generation)
-
-MCP (Model Context Protocol) server
-
-Hybrid retrieval (FAISS + BM25)
-
-Local cross‑encoder reranking
-
-Streamlit UI
-
-Databricks ingestion support
-
-The system answers questions about banking policies, regulations, and procedures using structured and unstructured data sources.
-
-It is designed to run entirely on a personal laptop, with optional low‑cost LLM calls.
-
-## Architecture
+### 🔧 High‑Level Architecture Diagram
 
 ```mermaid
 flowchart LR
 
-    %% UI
-    A[Streamlit UI<br/>User Questions] --> B[RAG Pipeline]
+    %% Docker Layer
+    subgraph DOCKER[Docker Compose Environment]
+        direction LR
+
+        %% MCP Container
+        subgraph MCP_CONTAINER[MCP Server Container]
+            M1[/search_policy/]
+            M2[/get_section/]
+            M3[/check_compliance/]
+        end
+
+        %% Streamlit Container
+        subgraph UI_CONTAINER[Streamlit UI Container]
+            UI[Streamlit UI<br/>User Questions]
+        end
+    end
 
     %% Ingestion Layer
-    subgraph INGESTION[Ingestion Layer]
+    subgraph INGEST[Ingestion Layer]
         I1[📄 Text Files]
         I2[📑 PDF Uploads]
         I3[🟦 Databricks Table]
     end
 
-    I1 --> D1
-    I2 --> D1
-    I3 --> D1
-
     %% Document Processing
-    subgraph D1[Document Processing]
+    subgraph PROCESSING[Document Processing]
         C1[Chunker]
         C2[Embeddings<br/>text-embedding-3-small]
         C3[FAISS Index]
@@ -48,29 +41,30 @@ flowchart LR
 
     %% RAG Pipeline
     subgraph RAG[RAG Pipeline]
-        B1[Hybrid Retriever<br/>FAISS + BM25]
-        B2[Local Cross-Encoder Reranker]
-        B3[LLM Answer Generator<br/>GPT-4o-mini]
+        R1[Hybrid Retriever<br/>FAISS + BM25]
+        R2[Cross-Encoder Reranker]
+        R3[LLM Answer Generator<br/>GPT-4o-mini]
     end
-
-    B --> B1 --> B2 --> B3 --> A
-
-    %% MCP Server
-    subgraph MCP[MCP Server]
-        M1[/search_policy/]
-        M2[/get_section/]
-        M3[/check_compliance/]
-    end
-
-    B -->|Tool Calls| MCP
-    MCP -->|Policy Sections| B
 
     %% Monitoring
-    subgraph MONITORING[Monitoring]
+    subgraph MONITORING[Monitoring & Evaluation]
         L1[Latency Tracking]
-        L2[Audit Logs]
+        L2[Retrieval Metrics<br/>Precision@k, MRR]
+        L3[Audit Logs]
     end
 
-    A --> MONITORING
-    MCP --> MONITORING
+    %% Connections
+    UI --> R1
+    R1 --> R2 --> R3 --> UI
 
+    UI -->|Tool Calls| MCP_CONTAINER
+    MCP_CONTAINER -->|Policy Sections| UI
+
+    I1 --> PROCESSING
+    I2 --> PROCESSING
+    I3 --> PROCESSING
+
+    PROCESSING --> R1
+
+    UI --> MONITORING
+    MCP_CONTAINER --> MONITORING
