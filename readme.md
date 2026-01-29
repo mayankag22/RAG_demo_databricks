@@ -86,7 +86,7 @@ graph TB
     FAISS -->|Vector Results| RETRIEVER
     BM25 -->|Keyword Results| RETRIEVER
     
-    RETRIEVER -->|Top-k Candidates| RERANK
+    RETRIEVER -->|Top-8 Candidates| RERANK
     RERANK -->|Ranked Documents| LLM
     LLM -->|Generated Answer| UI
     
