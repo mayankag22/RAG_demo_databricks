@@ -60,7 +60,7 @@ graph TB
     subgraph RAG["🤖 RAG Pipeline"]
         direction TB
         RETRIEVER["🔍 Hybrid Retriever<br/><i>FAISS + BM25 Fusion</i>"]
-        RERANK["⚡ Cross-Encoder Reranker<br/><i>Relevance Scoring</i>"]
+        RERANK["⚡ Cross-Encoder Reranker<br/><i>ms-marco-MiniLM-L-6-v2</i>"]
         LLM["🎯 LLM Generator<br/><i>GPT-4o-mini</i>"]
     end
     
